@@ -2,25 +2,31 @@
 
 A Go-inspired approach to handling fetch API in TypeScript/JavaScript.
 
-### Installation
+---
+
+### Installation 📦
 
 just copy the `eavfetch.ts/js` in the repo
 
+---
+
 ### API Structure should be as follows:
 
-#### HTTP Success
+#### HTTP Success ✅
 
 - Type: `JSON`
 - Structure: `{ data: T }`
 
-#### HTTP Error
+#### HTTP Error ❌
 
-- Type: `string`a
+- Type: `string`
 - Content: `Error message`
 
-or you can modify the code to fit your API structure, it's not that hard.
+**or you can modify the code to fit your API structure, it's not that hard. 😉**
 
-### Basic Usage
+---
+
+### Basic Usage 🚀
 
 ```typescript
 import { get } from "./eavfetch";

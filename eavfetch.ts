@@ -44,10 +44,13 @@ const createApi = (baseUrl: string) => {
       }
 
       const response = await fetch(`${baseUrl}${path}`, options);
-      const data = await response.json();
+      const { data, error } = (await response.json()) as {
+        data: T;
+        error: string | null;
+      };
 
       if (!response.ok) {
-        throw new Error(data.message || "API request failed");
+        throw new Error(error || "API request failed");
       }
 
       return [data, undefined];

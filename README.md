@@ -12,15 +12,11 @@ just copy the `eavfetch.ts/js` in the repo
 
 ### API Structure should be as follows:
 
-#### HTTP Success ✅
+#### HTTP Response format
+the server should always return the same format regardless if the request is success or not
 
 - Type: `JSON`
-- Structure: `{ data: T }`
-
-#### HTTP Error ❌
-
-- Type: `string`
-- Content: `Error message`
+- Structure: `{ data: T, error:string }`
 
 **or you can modify the code to fit your API structure, it's not that hard. 😉**
 
@@ -29,7 +25,7 @@ just copy the `eavfetch.ts/js` in the repo
 ### Basic Usage 🚀
 
 ```typescript
-import { get } from "./eavfetch";
+import { api } from "./eavfetch";
 
 interface Book {
   id: string;
@@ -39,7 +35,7 @@ interface Book {
 
 async function fetchBooks() {
   // data type is inferred as Book[]
-  const [data, error] = await get<Book[]>("/books");
+  const [data, error] = await api.get<Book[]>("/books");
 
   if (error) {
     console.error("Failed to fetch books:", error);

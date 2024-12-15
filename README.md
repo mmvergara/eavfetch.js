@@ -2,13 +2,10 @@
 
 A Go-inspired approach to handling fetch API in TypeScript/JavaScript.
 
----
-
 ### Installation 📦
 
 just copy the `eavfetch.ts/js` in the repo
 
----
 
 ### API Structure should be as follows:
 
@@ -20,7 +17,6 @@ the server should always return the same format regardless if the request is suc
 
 **or you can modify the code to fit your API structure, it's not that hard. 😉**
 
----
 
 ### Basic Usage 🚀
 

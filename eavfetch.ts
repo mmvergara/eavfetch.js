@@ -1,73 +1,95 @@
-const API_URL = "http://localhost:3000";
+type ApiResponse<T> = [T | undefined, string | undefined];
 
-type EavReturn<Data> = [Data | undefined, string | undefined];
+/**
+ * Creates an API client with predefined HTTP methods
+ *
+ * Rules:
+ *
+ * 1. The server should always return `{data: any, error: string | null}`
+ * 2. The request must start with a forward slash `api.get("/users")`
+ *
+ * Usage:
+ * ```typescript
+ * const [data, error] = await api.get<UserType>('/users');
+ *
+ * // error is a type of string | undefined
+ * // data is a type of UserType | undefined
+ *
+ * if (data) {
+ *   // Handle success
+ * }
+ * if (error) {
+ *   // Handle error
+ * }
+ * ```
+ */
+const createApi = (baseUrl: string) => {
+  const request = async <T>(
+    method: string,
+    path: string,
+    body?: Record<string, any> | FormData
+  ): Promise<ApiResponse<T>> => {
+    try {
+      const options: RequestInit = {
+        method,
+        credentials: "include",
+        headers:
+          body instanceof FormData
+            ? {}
+            : { "Content-Type": "application/json" },
+      };
 
-async function eavFetch<T>(
-  method: string,
-  url: string,
-  data?: Record<string, any> | FormData,
-  options: RequestInit = {}
-): Promise<EavReturn<T>> {
-  try {
-    const fetchOptions: RequestInit = {
-      method,
-      credentials: "include", // you can override this in the options
-      ...options,
-    };
-
-    if (data) {
-      fetchOptions.body =
-        data instanceof FormData ? data : JSON.stringify(data);
-      if (!(data instanceof FormData)) {
-        fetchOptions.headers = {
-          "Content-Type": "application/json",
-          ...options.headers,
-        };
+      if (body) {
+        options.body = body instanceof FormData ? body : JSON.stringify(body);
       }
+
+      const response = await fetch(`${baseUrl}${path}`, options);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "API request failed");
+      }
+
+      return [data, undefined];
+    } catch (error) {
+      return [undefined, (error as Error).message];
     }
-    console.log(fetchOptions);
-    const reqUrl = `${API_URL}${url}`;
-    const response = await fetch(reqUrl, fetchOptions);
+  };
 
-    if (!response.ok) {
-      return [undefined, await response.text()];
-    }
+  return {
+    /** GET request - for retrieving data */
+    get: <T>(path: string) => request<T>("GET", path),
 
-    // Check if no content
-    if (response.status === 204) {
-      return [undefined, undefined];
-    }
-    // Add more different status codes handling here if needed
+    /** POST request - for creating new resources */
+    post: <T>(path: string, body: Record<string, any> | FormData) =>
+      request<T>("POST", path, body),
 
-    const result = await response.json();
-    return [result.data, undefined];
-  } catch (error) {
-    return [undefined, (error as Error).message];
-  }
-}
+    /** PUT request - for replacing resources */
+    put: <T>(path: string, body: Record<string, any> | FormData) =>
+      request<T>("PUT", path, body),
 
-const post = <T = undefined>(
-  url: string,
-  data: Record<string, any> | FormData,
-  options?: RequestInit
-) => eavFetch<T>("POST", url, data, options);
+    /** PATCH request - for partial updates */
+    patch: <T>(path: string, body: Record<string, any> | FormData) =>
+      request<T>("PATCH", path, body),
 
-const get = <T>(url: string, options?: RequestInit) =>
-  eavFetch<T>("GET", url, undefined, options);
+    /** DELETE request - for removing resources */
+    delete: <T>(path: string) => request<T>("DELETE", path),
+  };
+};
 
-const del = <T>(url: string, options?: RequestInit) =>
-  eavFetch<T>("DELETE", url, undefined, options);
-
-const put = <T>(
-  url: string,
-  data: Record<string, any> | FormData,
-  options?: RequestInit
-) => eavFetch<T>("PUT", url, data, options);
-
-const patch = <T>(
-  url: string,
-  data: Record<string, any> | FormData,
-  options?: RequestInit
-) => eavFetch<T>("PATCH", url, data, options);
-
-export { post, get, del, put, patch };
+/**
+ * Pre-configured API client for the backend server
+ *
+ * @example
+ * // Fetch users
+ * const [users, error] = await api.get<User[]>('/users');
+ *
+ * // Create user
+ * const [newUser, error] = await api.post<User>('/users', { name: 'John' });
+ *
+ * // Upload file
+ * const formData = new FormData();
+ * formData.append('file', file);
+ * const [result, error] = await api.post<UploadResponse>('/upload', formData);
+ */
+export const api = createApi(API_URL);
